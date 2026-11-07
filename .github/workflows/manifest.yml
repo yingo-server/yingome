@@ -1,0 +1,34 @@
+name: manifest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate yingotab.yml
+        run: node scripts/gen-yml.mjs
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- yingotab.yml; then
+            echo "yingotab.yml unchanged, skip commit"
+          else
+            git add yingotab.yml
+            git commit -m "chore: regenerate yingotab.yml [skip ci]"
+            git push
+          fi
